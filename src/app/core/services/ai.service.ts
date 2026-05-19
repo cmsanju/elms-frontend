@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AiService {
-  private readonly BASE = 'http://localhost:8080/api';
+  private readonly BASE = 'https://elms-backend-api.onrender.com/api';
 
   constructor(private http: HttpClient) {}
 
