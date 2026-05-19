@@ -1,0 +1,196 @@
+<div class="interview-page">
+
+  <!-- ─── SETUP STAGE ─── -->
+  <div class="setup-panel" *ngIf="stage() === 'setup'">
+    <div class="setup-header">
+      <a routerLink="/dashboard" class="back-btn">← Back</a>
+      <h1>🎤 AI Interview Studio</h1>
+      <p>Real-time emotion detection · AI-evaluated answers · Comprehensive report</p>
+    </div>
+
+    <div class="setup-card">
+      <div class="setup-features">
+        <div class="sf-item"><span>🧠</span> Gemini AI generates role-specific questions</div>
+        <div class="sf-item"><span>😊</span> Emotion detection via webcam (face-api.js)</div>
+        <div class="sf-item"><span>🎤</span> Voice-to-text answer input</div>
+        <div class="sf-item"><span>📊</span> Comprehensive AI interview report</div>
+      </div>
+
+      <div class="setup-form">
+        <div class="field">
+          <label>Target Role</label>
+          <input [(ngModel)]="config.role" placeholder="e.g. Full Stack Developer, Data Scientist..."/>
+        </div>
+        <div class="field">
+          <label>Your Skills</label>
+          <input [(ngModel)]="config.skills" placeholder="e.g. Java, Spring Boot, Angular, MySQL..."/>
+        </div>
+        <div class="field">
+          <label>Number of Questions</label>
+          <select [(ngModel)]="config.questionCount">
+            <option [value]="4">4 Questions (Quick)</option>
+            <option [value]="6">6 Questions (Standard)</option>
+            <option [value]="8">8 Questions (Thorough)</option>
+            <option [value]="10">10 Questions (Comprehensive)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="setup-requirements">
+        <h4>⚡ Before you start:</h4>
+        <ul>
+          <li>✅ Ensure your webcam is connected and permitted</li>
+          <li>✅ Use Chrome/Edge for best speech recognition support</li>
+          <li>✅ Find a quiet, well-lit environment</li>
+          <li>✅ Have your thoughts ready — this is a real interview simulation</li>
+        </ul>
+      </div>
+
+      <button class="btn-start" (click)="startInterview()">
+        🚀 Start AI Interview
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── ACTIVE INTERVIEW STAGE ─── -->
+  <div class="interview-active" *ngIf="stage() === 'active'">
+    <!-- Top Bar -->
+    <div class="interview-topbar">
+      <div class="itb-left">
+        <span class="live-indicator">● LIVE</span>
+        <span class="role-tag">{{ config.role }}</span>
+      </div>
+      <div class="itb-center">
+        Q {{ currentQIdx() + 1 }} / {{ questions().length }}
+      </div>
+      <div class="itb-right">
+        <span class="timer">⏱ {{ formatTime(totalTimeLeft()) }}</span>
+      </div>
+    </div>
+
+    <div class="interview-body">
+      <!-- Camera & Emotion Panel -->
+      <div class="camera-panel">
+        <div class="video-wrapper">
+          <video #videoEl autoplay muted playsinline class="video-feed"
+                 [class.no-camera]="!cameraActive()"></video>
+          <canvas #canvasEl class="emotion-overlay"></canvas>
+          <div class="no-cam-placeholder" *ngIf="!cameraActive()">
+            <span>📷</span>
+            <p>Camera not available</p>
+            <small>Emotion simulation active</small>
+          </div>
+          <div class="emotion-chip" [style.background]="getEmotionColor(currentEmotion()) + '22'"
+               [style.border-color]="getEmotionColor(currentEmotion()) + '66'">
+            <span>{{ getEmotionEmoji(currentEmotion()) }}</span>
+            <span [style.color]="getEmotionColor(currentEmotion())">{{ currentEmotion() }}</span>
+          </div>
+        </div>
+
+        <!-- Emotion Bars -->
+        <div class="emotion-bars">
+          <h4>😊 Emotion Analysis</h4>
+          <div class="emotion-bar" *ngFor="let score of emotionScores() | keyvalue">
+            <span class="eb-label">{{ score.key }}</span>
+            <div class="eb-track">
+              <div class="eb-fill" [style.width.%]="(+score.value * 100)"
+                   [style.background]="getEmotionColor(score.key.toUpperCase())"></div>
+            </div>
+            <span class="eb-val">{{ (+score.value * 100).toFixed(0) }}%</span>
+          </div>
+        </div>
+
+        <div class="progress-steps">
+          <div class="ps-item" *ngFor="let q of questions(); let i = index"
+               [class.done]="i < currentQIdx()" [class.current]="i === currentQIdx()">
+            {{ i + 1 }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Question & Answer Panel -->
+      <div class="qa-panel">
+        <!-- Question Card -->
+        <div class="question-display" *ngIf="questions()[currentQIdx()]">
+          <div class="qd-meta">
+            <span class="qd-type" [class]="questions()[currentQIdx()].type?.toLowerCase()">
+              {{ questions()[currentQIdx()].type || 'TECHNICAL' }}
+            </span>
+            <span class="qd-diff">{{ questions()[currentQIdx()].difficulty }}</span>
+          </div>
+          <h2 class="qd-text">{{ questions()[currentQIdx()].question }}</h2>
+
+          <div class="follow-ups" *ngIf="questions()[currentQIdx()].followUpQuestions?.length">
+            <h5>💭 Consider also:</h5>
+            <p *ngFor="let fu of questions()[currentQIdx()].followUpQuestions">• {{ fu }}</p>
+          </div>
+        </div>
+
+        <!-- Answer Input Area -->
+        <div class="answer-area">
+          <div class="answer-header">
+            <span>📝 Your Answer</span>
+            <div class="voice-controls">
+              <button class="btn-voice" [class.listening]="isListening()" (click)="toggleListening()">
+                {{ isListening() ? '🔴 Stop Recording' : '🎤 Start Voice Input' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="voice-transcript" *ngIf="isListening()">
+            <div class="recording-indicator">
+              <span class="rec-dot"></span> Recording... speak clearly
+            </div>
+            <p *ngIf="transcript()">{{ transcript() }}</p>
+          </div>
+
+          <textarea class="answer-textarea"
+            [(ngModel)]="currentAnswer"
+            placeholder="Type your answer here, or use voice input above...
+            
+Think about:
+• Structure your answer clearly
+• Use specific examples and experiences
+• Mention relevant technical concepts
+• STAR method for behavioral questions (Situation, Task, Action, Result)"
+            rows="8">
+          </textarea>
+
+          <!-- Live AI Feedback -->
+          <div class="live-feedback-box" *ngIf="liveFeedback()">
+            <div class="lf-header">🤖 AI Evaluation of Previous Answer</div>
+            <p>{{ liveFeedback() }}</p>
+          </div>
+
+          <div class="answer-actions">
+            <button class="btn-skip-q" (click)="nextQuestion()">Skip →</button>
+            <button class="btn-submit-answer" (click)="submitAnswer()" [disabled]="submittingAnswer()">
+              {{ submittingAnswer() ? '🤖 AI Evaluating...' : 'Submit Answer ✓' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- End Early Button -->
+        <button class="btn-end-interview" (click)="finishInterview()">
+          🏁 End Interview & Get Report
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── EVALUATING STAGE ─── -->
+  <div class="evaluating-panel" *ngIf="stage() === 'evaluating'">
+    <div class="eval-animation">
+      <div class="spinner-ring"></div>
+      <div class="eval-icon">🤖</div>
+    </div>
+    <h2>Gemini AI is generating your report...</h2>
+    <p>Analyzing answers, emotion data, and behavioral patterns</p>
+    <div class="eval-steps">
+      <div class="es">✅ Interview answers collected</div>
+      <div class="es">✅ Emotion timeline analyzed</div>
+      <div class="es analyzing">🔄 Generating comprehensive report...</div>
+    </div>
+  </div>
+
+</div>

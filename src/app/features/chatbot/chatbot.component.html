@@ -1,0 +1,148 @@
+<div class="chatbot-page">
+  <!-- Sidebar -->
+  <div class="chat-sidebar">
+    <div class="cs-header">
+      <div class="cs-logo">🤖</div>
+      <div>
+        <div class="cs-title">ELMS AI</div>
+        <div class="cs-sub">Gemini Powered</div>
+      </div>
+    </div>
+
+    <div class="cs-status">
+      <span class="status-dot"></span> Online · Gemini 2.5 Flash
+    </div>
+
+    <div class="cs-section">
+      <div class="csh">⚡ Quick Prompts</div>
+      <button class="quick-btn" *ngFor="let p of quickPrompts" (click)="useQuickPrompt(p)">{{ p }}</button>
+    </div>
+
+    <div class="cs-section">
+      <div class="csh">🛠️ Tools</div>
+      <button class="tool-btn" (click)="fileInput.click()">
+        📄 Upload Document
+      </button>
+      <button class="tool-btn" (click)="clearChat()">
+        🗑️ Clear Chat
+      </button>
+      <a class="tool-btn" routerLink="/assessment/mcq">
+        🧠 Take Assessment
+      </a>
+      <a class="tool-btn" routerLink="/interview">
+        🎤 Mock Interview
+      </a>
+    </div>
+
+    <input #fileInput type="file" accept=".pdf,.docx,.txt,.md" (change)="onFileSelect($event)" hidden/>
+  </div>
+
+  <!-- Main Chat -->
+  <div class="chat-main">
+    <!-- Top Bar -->
+    <div class="chat-topbar">
+      <div class="ct-left">
+        <a routerLink="/dashboard" class="back-btn">← Dashboard</a>
+        <h2>AI Chatbot</h2>
+        <span class="ct-badge">Text · Voice · Documents</span>
+      </div>
+      <div class="ct-right">
+        <div class="user-pill">{{ user()?.fullName }}</div>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="chat-messages">
+      <div class="message" *ngFor="let msg of messages()"
+           [class.user-msg]="msg.role === 'user'"
+           [class.ai-msg]="msg.role === 'ai'">
+
+        <div class="msg-avatar">
+          {{ msg.role === 'ai' ? '🤖' : '👤' }}
+        </div>
+
+        <div class="msg-bubble">
+          <div class="msg-meta">
+            <span class="msg-sender">{{ msg.role === 'ai' ? 'ELMS AI' : (user()?.fullName || 'You') }}</span>
+            <span class="msg-type voice-tag" *ngIf="msg.type === 'voice'">🎤 Voice</span>
+            <span class="msg-type doc-tag" *ngIf="msg.type === 'document'">📄 Document</span>
+            <span class="msg-time">{{ msg.timestamp | date:'HH:mm' }}</span>
+          </div>
+
+          <!-- Loading state -->
+          <div class="msg-loading" *ngIf="msg.loading">
+            <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          </div>
+
+          <!-- Content -->
+          <div class="msg-content" *ngIf="!msg.loading" [innerHTML]="formatContent(msg.content)">
+          </div>
+        </div>
+      </div>
+      <div #chatEnd></div>
+    </div>
+
+    <!-- Document Upload Panel -->
+    <div class="doc-panel" *ngIf="showDocPanel()">
+      <div class="dp-header">
+        <span>📄 {{ uploadedFile()?.name }}</span>
+        <button class="dp-close" (click)="showDocPanel.set(false); uploadedFile.set(null)">✕</button>
+      </div>
+      <div class="dp-body">
+        <input class="dp-query" [(ngModel)]="docQuery"
+          placeholder="What do you want to know about this document? (Leave blank for summary)"
+          (keydown.enter)="analyzeDocument()"/>
+        <button class="dp-btn" (click)="analyzeDocument()" [disabled]="isLoading()">
+          🔍 Analyze Document
+        </button>
+      </div>
+    </div>
+
+    <!-- Input Area -->
+    <div class="chat-input-area">
+      <div class="input-attachments" *ngIf="uploadedFile()">
+        <span class="att-chip">
+          📄 {{ uploadedFile()?.name }}
+          <button (click)="uploadedFile.set(null); showDocPanel.set(false)">✕</button>
+        </span>
+      </div>
+
+      <div class="input-row">
+        <!-- File upload button -->
+        <button class="input-action-btn" (click)="fileInput.click()" title="Upload document">
+          📎
+        </button>
+
+        <!-- Voice button -->
+        <button class="input-action-btn voice-btn" [class.active]="isListening()"
+                (click)="toggleVoice()" title="Voice input">
+          {{ isListening() ? '🔴' : '🎤' }}
+        </button>
+
+        <!-- Text Input -->
+        <textarea class="chat-input"
+          [(ngModel)]="inputText"
+          (keydown)="onEnterKey($event)"
+          [placeholder]="isListening() ? '🔴 Listening... speak now' : 'Ask anything — type, speak, or upload a document...'"
+          rows="1"
+          [disabled]="isListening()">
+        </textarea>
+
+        <!-- Send button -->
+        <button class="send-btn" (click)="sendMessage()" [disabled]="!inputText.trim() || isLoading()">
+          <span *ngIf="!isLoading()">→</span>
+          <span *ngIf="isLoading()" class="spin">⟳</span>
+        </button>
+      </div>
+
+      <div class="voice-hint" *ngIf="isListening()">
+        <div class="vh-wave"></div>
+        <span>Listening... click 🔴 to stop</span>
+      </div>
+
+      <div class="input-hint">
+        Press Enter to send · Shift+Enter for new line · 🎤 for voice · 📎 for documents
+      </div>
+    </div>
+  </div>
+</div>

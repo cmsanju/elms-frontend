@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<div class="login-page">
+  <!-- Animated background -->
+  <div class="bg-animation">
+    <div class="particle" *ngFor="let p of [1,2,3,4,5,6,7,8]" [class]="'p-' + p"></div>
+  </div>
+
+  <div class="login-container">
+    <!-- Left Panel: Branding -->
+    <div class="brand-panel">
+      <div class="brand-content">
+        <div class="brand-logo">
+          <span class="logo-icon">⚡</span>
+          <span class="logo-text">ELMS</span>
+        </div>
+        <h1 class="brand-tagline">Agentic AI<br/><em>E-Learning Platform</em></h1>
+        <p class="brand-desc">The world's most advanced AI-powered learning system with emotion detection, intelligent assessments, and personalized coaching.</p>
+
+        <div class="features-list">
+          <div class="feature-item" *ngFor="let f of features">
+            <span class="feat-icon">{{ f.icon }}</span>
+            <span>{{ f.label }}</span>
+          </div>
+        </div>
+
+        <div class="stats-row">
+          <div class="stat" *ngFor="let s of stats">
+            <div class="stat-val">{{ s.value }}</div>
+            <div class="stat-label">{{ s.label }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel: Login Form -->
+    <div class="form-panel">
+      <div class="form-card">
+        <div class="form-header">
+          <h2>Welcome Back</h2>
+          <p>Sign in to continue your AI-powered learning journey</p>
+        </div>
+
+        <div class="demo-badges">
+          <button class="demo-btn" (click)="demoLogin('STUDENT')">👨‍🎓 Demo Student</button>
+          <button class="demo-btn" (click)="demoLogin('INSTRUCTOR')">👨‍🏫 Demo Instructor</button>
+          <button class="demo-btn" (click)="demoLogin('ADMIN')">🛡️ Demo Admin</button>
+        </div>
+
+        <div class="divider"><span>or sign in with credentials</span></div>
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <div class="field-group">
+            <label>Email Address</label>
+            <div class="input-wrapper">
+              <span class="input-icon">✉️</span>
+              <input type="email" formControlName="email" placeholder="your@email.com" autocomplete="email"/>
+            </div>
+            <div class="field-error" *ngIf="form.get('email')?.touched && form.get('email')?.invalid">
+              Please enter a valid email
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label>Password</label>
+            <div class="input-wrapper">
+              <span class="input-icon">🔐</span>
+              <input [type]="showPassword ? 'text' : 'password'" formControlName="password" placeholder="••••••••" autocomplete="current-password"/>
+              <button type="button" class="toggle-pw" (click)="showPassword = !showPassword">
+                {{ showPassword ? '🙈' : '👁️' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="error-message" *ngIf="error">⚠️ {{ error }}</div>
+
+          <button type="submit" class="btn-login" [disabled]="loading || form.invalid">
+            <span *ngIf="!loading">Sign In →</span>
+            <span *ngIf="loading" class="spinner">⟳ Authenticating...</span>
+          </button>
+        </form>
+
+        <div class="form-footer">
+          <span>Don't have an account?</span>
+          <a routerLink="/auth/register">Create Account →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

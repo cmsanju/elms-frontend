@@ -1,0 +1,189 @@
+<div class="cert-page">
+
+  <!-- ═══════════════════════════════════════════════════
+       HEADER
+  ═══════════════════════════════════════════════════ -->
+  <div class="page-header">
+    <a routerLink="/dashboard" class="back-btn">← Dashboard</a>
+    <div class="ph-center">
+      <h1>🏆 Certificate Generator</h1>
+      <p>Gemini AI crafts a personalised achievement message for every certificate</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       FORM  (shown while no certificate yet)
+  ═══════════════════════════════════════════════════ -->
+  <section class="form-section" *ngIf="!certData()">
+    <div class="form-card">
+
+      <div class="form-card-header">
+        <span class="fch-icon">📋</span>
+        <div>
+          <div class="fch-title">Certificate Details</div>
+          <div class="fch-sub">Fill in the details below — AI generates the rest</div>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="field span2">
+          <label>Student Full Name</label>
+          <input [(ngModel)]="form.studentName" placeholder="e.g. Arjun Sharma" />
+        </div>
+
+        <div class="field span2">
+          <label>Course Name</label>
+          <input [(ngModel)]="form.courseName"
+                 placeholder="e.g. Full Stack Java with Spring Boot & Angular" />
+        </div>
+
+        <div class="field">
+          <label>Final Score (%)</label>
+          <input type="number" [(ngModel)]="form.score"
+                 min="0" max="100" placeholder="85" />
+        </div>
+
+        <div class="field">
+          <label>Instructor Name</label>
+          <input [(ngModel)]="form.instructorName" placeholder="e.g. Dr. Ravi Kumar" />
+        </div>
+
+        <div class="field span2">
+          <label>Skills Covered <span class="opt">(optional)</span></label>
+          <input [(ngModel)]="form.skills"
+                 placeholder="e.g. Java, Spring Boot, Angular, MySQL" />
+        </div>
+      </div>
+
+      <button class="btn-generate" (click)="generate()" [disabled]="generating()">
+        <ng-container *ngIf="!generating()">
+          ⚡ Generate AI Certificate
+        </ng-container>
+        <ng-container *ngIf="generating()">
+          <span class="spinner"></span> Gemini AI is writing your certificate…
+        </ng-container>
+      </button>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════
+       ACTIONS BAR  (shown when certificate is ready)
+  ═══════════════════════════════════════════════════ -->
+  <div class="actions-bar" *ngIf="certData()">
+    <button class="ab-btn secondary" (click)="reset()">← Generate New</button>
+
+    <div class="ab-badges">
+      <span class="ab-badge gold">📋 {{ certData()!.certificateNumber }}</span>
+      <span class="ab-badge">📅 {{ certData()!.issuedDate }}</span>
+    </div>
+
+    <div class="ab-right">
+      <button class="ab-btn copy"  (click)="copyNumber()">📋 Copy ID</button>
+      <button class="ab-btn print" (click)="print()">🖨️ Print / PDF</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       CERTIFICATE  (pure Angular — no iframe)
+  ═══════════════════════════════════════════════════ -->
+  <div class="cert-wrapper" *ngIf="certData()" #certRef id="printable">
+    <div class="certificate">
+
+      <!-- Corner ornaments -->
+      <div class="corner tl"></div>
+      <div class="corner tr"></div>
+      <div class="corner bl"></div>
+      <div class="corner br"></div>
+
+      <!-- Watermark -->
+      <div class="watermark">ELMS AI</div>
+
+      <!-- Logo -->
+      <div class="logo">
+        <div class="logo-mark">⚡</div>
+        <div class="logo-text">ELMS</div>
+        <div class="logo-sub">AGENTIC AI LEARNING PLATFORM</div>
+      </div>
+
+      <!-- Divider -->
+      <div class="divider"></div>
+
+      <!-- Title -->
+      <div class="cert-label">Certificate of Achievement</div>
+      <div class="cert-title">Certificate</div>
+      <div class="cert-subtitle">of Completion</div>
+
+      <!-- Recipient -->
+      <div class="presented-to">Proudly Presented To</div>
+      <div class="student-name">{{ certData()!.studentName }}</div>
+
+      <!-- Course Info -->
+      <div class="course-block">
+        <p class="cb-intro">has successfully completed the professional certification programme</p>
+        <div class="cb-course">{{ certData()!.courseName }}</div>
+        <div class="cb-meta">
+          <span>Completed on <strong>{{ certData()!.issuedDate }}</strong></span>
+        </div>
+        <div class="cb-skills" *ngIf="certData()!.skills">
+          <span class="skills-label">Skills Mastered:</span>
+          <span class="skills-val">{{ certData()!.skills }}</span>
+        </div>
+      </div>
+
+      <!-- AI Message -->
+      <div class="ai-box">
+        <div class="ai-box-icon">🤖</div>
+        <p>{{ certData()!.aiMessage }}</p>
+      </div>
+
+      <!-- Divider -->
+      <div class="divider"></div>
+
+      <!-- Footer row -->
+      <div class="cert-footer">
+
+        <!-- Instructor signature -->
+        <div class="signature">
+          <div class="sig-line"></div>
+          <div class="sig-name">{{ certData()!.instructorName }}</div>
+          <div class="sig-role">Course Instructor</div>
+        </div>
+
+        <!-- Score badge -->
+        <div class="score-badge"
+             [style.border-color]="scoreColor(certData()!.score)"
+             [style.box-shadow]="'0 0 32px ' + scoreColor(certData()!.score) + '44'">
+          <div class="sb-score" [style.color]="scoreColor(certData()!.score)">
+            {{ certData()!.score }}<span class="sb-pct">%</span>
+          </div>
+          <div class="sb-label">FINAL SCORE</div>
+        </div>
+
+        <!-- Platform signature -->
+        <div class="signature">
+          <div class="sig-line"></div>
+          <div class="sig-name">Sanjeev Founder & CEO</div>
+          <div class="sig-role">Authorised Signatory</div>
+        </div>
+
+      </div>
+
+      <!-- Certificate number -->
+      <div class="cert-number">
+        Certificate No: {{ certData()!.certificateNumber }}&nbsp;&nbsp;|&nbsp;&nbsp;Issued: {{ certData()!.issuedDate }}
+      </div>
+
+    </div><!-- .certificate -->
+  </div><!-- .cert-wrapper -->
+
+  <!-- AI message card below certificate -->
+  <div class="ai-message-card" *ngIf="certData()">
+    <div class="amc-header">
+      <span>🤖</span>
+      <strong>Gemini AI Achievement Message</strong>
+    </div>
+    <p>"{{ certData()!.aiMessage }}"</p>
+  </div>
+
+</div><!-- .cert-page -->

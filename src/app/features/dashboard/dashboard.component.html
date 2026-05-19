@@ -1,0 +1,129 @@
+<div class="app-shell">
+  <!-- Sidebar Nav -->
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <span class="s-icon">⚡</span>
+      <span class="s-text">ELMS<span class="s-ai">AI</span></span>
+    </div>
+
+    <div class="user-profile">
+      <div class="avatar">{{ user()?.fullName?.charAt(0) || 'U' }}</div>
+      <div class="user-info">
+        <div class="uname">{{ user()?.fullName }}</div>
+        <div class="urole badge">{{ user()?.role }}</div>
+      </div>
+    </div>
+
+    <ul class="nav-links">
+      <li *ngFor="let item of navItems">
+        <a [routerLink]="item.route" routerLinkActive="active" [class.home-active]="item.active">
+          <span class="ni">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-footer">
+      <button class="logout-btn" (click)="logout()">🚪 Logout</button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="greeting">{{ getGreeting() }}, {{ (user()?.fullName?.split(' ')?.[0]) || '' }}! 👋</h1>
+        <p class="date-time">{{ currentTime | date:'EEEE, MMMM d, y · h:mm:ss a' }}</p>
+      </div>
+      <div class="topbar-right">
+        <div class="ai-badge">🤖 Gemini AI Active</div>
+      </div>
+    </header>
+
+    <!-- Stats Grid -->
+    <section class="stats-grid">
+      <div class="stat-card" *ngFor="let s of statsCards">
+        <div class="stat-icon" [style.background]="s.color + '20'" [style.color]="s.color">{{ s.icon }}</div>
+        <div class="stat-data">
+          <div class="stat-val" [style.color]="s.color">{{ s.value }}</div>
+          <div class="stat-lbl">{{ s.label }}</div>
+          <div class="stat-trend">📈 {{ s.trend }}</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quick Actions -->
+    <section class="section">
+      <h2 class="section-title">⚡ Quick AI Actions</h2>
+      <div class="actions-grid">
+        <a class="action-card" *ngFor="let a of quickActions" [routerLink]="a.route"
+           [style.--accent]="a.color">
+          <div class="action-icon" [style.background]="a.color + '15'" [style.color]="a.color">{{ a.icon }}</div>
+          <div class="action-info">
+            <div class="action-name">{{ a.label }}</div>
+            <div class="action-desc">{{ a.desc }}</div>
+          </div>
+          <span class="action-arrow">→</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- AI Recommendations -->
+    <section class="section">
+      <h2 class="section-title">🤖 AI Learning Recommendations</h2>
+      <div *ngIf="loadingRec()" class="ai-loading">
+        <div class="pulse-ring"></div>
+        <span>Gemini AI is analyzing your profile...</span>
+      </div>
+      <div *ngIf="recommendations() && !loadingRec()" class="rec-grid">
+        <div class="rec-card" *ngFor="let r of recommendations()?.recommendations?.slice(0,3)">
+          <div class="rec-priority" [class]="r.priority?.toLowerCase()">{{ r.priority }}</div>
+          <h3>{{ r.title }}</h3>
+          <p>{{ r.reason }}</p>
+          <div class="rec-meta">
+            <span>⏱ {{ r.estimatedTime }}</span>
+            <a [routerLink]="['/courses']" class="rec-enroll">Enroll →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Showcase -->
+    <section class="section">
+      <h2 class="section-title">🌟 Platform Capabilities</h2>
+      <div class="features-showcase">
+        <div class="feature-tile">
+          <div class="ft-icon">🧠</div>
+          <h3>AI-Generated Assessments</h3>
+          <p>Gemini AI creates unique MCQ and coding challenges tailored to your skill level in real-time</p>
+        </div>
+        <div class="feature-tile">
+          <div class="ft-icon">😊</div>
+          <h3>Emotion Detection Interview</h3>
+          <p>Advanced face-api.js detects confidence, nervousness, and engagement during mock interviews</p>
+        </div>
+        <div class="feature-tile">
+          <div class="ft-icon">🎤</div>
+          <h3>Voice-Powered Chatbot</h3>
+          <p>Speak your questions — AI transcribes, understands, and responds with intelligent answers</p>
+        </div>
+        <div class="feature-tile">
+          <div class="ft-icon">📄</div>
+          <h3>Document Intelligence</h3>
+          <p>Upload PDFs, DOCX files — AI analyzes and answers questions about your documents instantly</p>
+        </div>
+        <div class="feature-tile">
+          <div class="ft-icon">🏆</div>
+          <h3>AI-Signed Certificates</h3>
+          <p>Earn beautifully designed certificates with AI-generated personal achievement messages</p>
+        </div>
+        <div class="feature-tile">
+          <div class="ft-icon">🗺️</div>
+          <h3>Personalized Learning Paths</h3>
+          <p>AI analyzes your goals and skills to recommend the perfect learning sequence</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
