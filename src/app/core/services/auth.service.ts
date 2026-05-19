@@ -14,7 +14,7 @@ export interface User {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly API = 'http://localhost:8080/api/auth';
+  private readonly API = 'https://elms-backend-api.onrender.com/api/auth';
   currentUser = signal<User | null>(null);
 
   constructor(private http: HttpClient, private router: Router) {
